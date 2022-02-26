@@ -272,7 +272,7 @@ def calculate_first_point(f1new: float,f: np.ndarray,free_energy: np.ndarray, z:
                           maxiter=500)
     return f2new
 
-def f_next_point(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: np.ndarray,f1new: float,f2new: float,fa: np.ndarray,fb: np.ndarray):
+def f_next_point(f2new: float,free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: np.ndarray,f1new: float,fa: np.ndarray,fb: np.ndarray) -> float:
 
     """
     Free energy difference function of the next point to be optimized if the Number of points is greater than 1
@@ -312,8 +312,10 @@ def f_next_point(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: np
     fun[1] - fun[2] : float
         Free energy difference in the next point   
     """
+
     fun = np.zeros(2)
     dfab = delta_f(fb[0,:],fb[1,:],fa)
+    
     omega1 = (za[0,:]-zb[0,:]-covb[0,:]*dfab[0]
               -covb[2,:]*dfab[1])/(3*dfab[0]**2)
     omega2 = (za[1,:]-zb[1,:]-covb[1,:]*dfab[1]
@@ -324,9 +326,9 @@ def f_next_point(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: np
              coef[1,:]-0.5*(coef[2,:] -
              coef[3,:]) - coef[4,:] + 
              omega1*df[0]**3+omega2*df[1]**3)
-    return fun[1] - fun[2]
+    return fun[0] - fun[1]
 
-def df_next_point(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: np.ndarray,f1new: float,f2new: float,fa: np.ndarray,fb: np.ndarray) -> float:
+def df_next_point(f2new: float,free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: np.ndarray,f1new: float,fa: np.ndarray,fb: np.ndarray) -> float:
     """
     Calculate the partial derivative of Free energy difference function (f_next_point) with respect 
     to the new coexistence point (f2)
@@ -368,9 +370,9 @@ def df_next_point(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: n
     df = delta_f(f1new,f2new,fb)
     fun   = ( zb[1,:] - covb[1,:]*df[1] -
              covb[2,:]*df[1] + 3*omega2*df[1]**2)
-    return fun[1] - fun[2]
+    return fun[0] - fun[1]
 
-def f_next_point_zeta(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,cova: np.ndarray,covb: np.ndarray,f1new: float,f2new: float,fa: np.ndarray,fb: np.ndarray) -> float:
+def f_next_point_zeta(f2new: float,free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,cova: np.ndarray,covb: np.ndarray,f1new: float,fa: np.ndarray,fb: np.ndarray) -> float:
 
     """
     Free energy difference function of the next point to be optimized if the Number of points is greater than 1
@@ -427,9 +429,9 @@ def f_next_point_zeta(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,cov
     fun   = (free_energyb+coef[0,:] +
              coef[1,:]-0.5*coef[3,:] + omega3*df[0]**2
              + omega1*df[1]**3+omega2*df[0]*df[1])
-    return fun[1] - fun[2]
+    return fun[0] - fun[1]
 
-def df_next_point_zeta(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,cova: np.ndarray,covb: np.ndarray,f1new: float,f2new: float,fa: np.ndarray,fb: np.ndarray) -> float:
+def df_next_point_zeta(f2new: float,free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,cova: np.ndarray,covb: np.ndarray,f1new: float,fa: np.ndarray,fb: np.ndarray) -> float:
     """
     Calculate the partial derivative of Free energy difference function (f_next_point_zeta) with respect 
     to the new coexistence point (f2)
@@ -472,9 +474,9 @@ def df_next_point_zeta(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,co
     df = delta_f(f1new,f2new,fb)
     fun   = (zb[1,:]-covb[1,:]*df[1] +
              + 3*omega1*df[1]**2+omega2*df[0])
-    return fun[1] - fun[2]
+    return fun[0] - fun[1]
 
-def calculate_next_point(int_type:int ,f1new: float,f: np.ndarray,free_energy: np.ndarray, z: np.ndarray, cov: np.ndarray) -> 'tuple[np.ndarray,np.ndarray]' :
+def calculate_next_point(int_type:int ,f1new: float,f: np.ndarray,free_energy: np.ndarray, z: np.ndarray, cov: np.ndarray) -> 'tuple[np.ndarray,float]' :
     """
     Calculate the  next point (f2) in the integration and its free energies in the Nf1f2 ensemble 
     Parameters
@@ -511,68 +513,27 @@ def calculate_next_point(int_type:int ,f1new: float,f: np.ndarray,free_energy: n
 
     for ipt in range(Npoints-1):
         bpt = ipt +1
-        free_energy[ipt,:] = (cal_free_energy(f[:,ipt,:],f[:,bpt,:],
+        free_energy[bpt,:] = (cal_free_energy(f[:,ipt,:],f[:,bpt,:],
         z[:,ipt,:],z[:,bpt,:],cov[:,ipt,:],cov[:,bpt,:],free_energy[ipt,:]))
+        
 
     apt = Npoints - 2
     bpt = Npoints - 1
     f2new0 = first_guess_newton(free_energy[bpt,:],z[:,bpt,:],f1new,f[:,bpt,:])
+
+
     if (int_type==0):
-        f2new = optimize.newton(f_next_point_zeta, f2new0,fprime=df_next_point_zeta,
+        f2new = optimize.newton(f_next_point_zeta,f2new0,fprime=df_next_point_zeta,
                           args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
-                          cov[:,apt,:],cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:]),
+                          cov[:,apt,:],cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
                           maxiter=500)
     else:
-        f2new = optimize.newton(f_next_point, f2new0,fprime=df_next_point,
+        f2new = optimize.newton(f_next_point,f2new0,fprime=df_next_point,
                           args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
-                          cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:]),
+                          cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
                           maxiter=500)
     return free_energy,f2new
 
-
-f = np.zeros((2,2))
-z = np.zeros((2,2))
-cov = np.zeros((3,2))
-free_energy = np.zeros(2)
-f[0,:] = 1.1500000000000        
-f[1,:] = 8.02277425969222     
-z[0,0]  = -2.08372931917015
-z[1,0]  = 2.23293244807807
-
-z[0,1]  = -1.57569717110201
-z[1,1]  = 2.47249643756598
-free_energy[0] = 3.49E-02
-free_energy[1] = 0
-f1new = 1.10
-
-cov[0,0] = 0.960844242975974 
-cov[1,0] = 4.958482382152183E-002
-cov[2,0] = 7.901727952996399E-002
-
-cov[0,1] = 0.991399014862420
-cov[1,1] = 6.373950626205432E-002
-cov[2,1] = 0.133096435686193
-
-f2new0 = first_guess_newton(free_energy,z,f1new,f)
-
-f2new = optimize.newton(f_first_point, f2new0,fprime=df_first_point,
-                          args=(free_energy,z,cov,f1new,f,),
-                          maxiter=500)
-print(f2new)
-
-print(f2new0)
-#iso
-#    -1.57569717110201       0.224034000000000     
-#    2.47249643756598       -1.57569717110201     
-#   6.373950626205432E-002
-#   0.991399014862420     
-#   0.133096435686193     
-#crystal
-#    -2.08372931917015       0.373524666666667     
-#    2.23293244807807       -2.08372931917015     
-#   4.958482382152183E-002
-#   0.960844242975974     
-#   7.901727952996399E-002
 
 
 if __name__ == "__main__":
