@@ -1,4 +1,5 @@
 """Provide functions used to estimate coexistence points"""
+
 import numpy as np
 from scipy import optimize
 
@@ -49,10 +50,10 @@ def poly_coefficients(df: np.ndarray,z: np.ndarray,cov: np.ndarray) -> np.ndarra
     coef = np.zeros((6,2))
     coef[0,:] = z[0,:]*df[0,:]
     coef[1,:] = z[1,:]*df[1,:]
-    coef[2,:] = cov[0,:]*df[0]**2
-    coef[3,:] = cov[1,:]*df[1]**2
-    coef[4,:] = cov[2,:]*df[0]*df[1]
-    coef[5,:] = cov[2,:]*df[0]
+    coef[2,:] = cov[0,:]*df[0,:]**2
+    coef[3,:] = cov[1,:]*df[1,:]**2
+    coef[4,:] = cov[2,:]*df[0,:]*df[1,:]
+    coef[5,:] = cov[2,:]*df[0,:]
     return coef
 
 def first_guess_newton(free_energy: np.ndarray,z: np.ndarray,f1new: float,f: np.ndarray)->float:
@@ -83,6 +84,7 @@ def first_guess_newton(free_energy: np.ndarray,z: np.ndarray,f1new: float,f: np.
     f20_a = free_energy[0] - free_energy[1] +z[0,0]*(f1new-f[0,0]) - z[0,1]*(f1new-f[0,1])
     f20_b = -z[1,0]*f[1,0]+z[1,1]*f[1,1]
     f2new0 = (f20_a+f20_b)/(z[1,1] - z[1,0])
+
     return f2new0
 
 def f_first_point(f2new: float,free_energy:np.ndarray,z:np.ndarray,cov:np.ndarray,f1new:float,f:np.ndarray)->float:
@@ -120,7 +122,7 @@ def f_first_point(f2new: float,free_energy:np.ndarray,z:np.ndarray,cov:np.ndarra
     df = delta_f(f1new,f2new,f)
     coef=poly_coefficients(df,z,cov)
     fun   = (free_energy+coef[0,:] +
-             coef[1,:]-0.5*(coef[2,:] -
+             coef[1,:]-0.5*(coef[2,:] +
              coef[3,:]) - coef[4,:])
     return fun[0] - fun[1]
 
@@ -322,7 +324,7 @@ def f_next_point(f2new: float,free_energyb: np.ndarray,za: np.ndarray,zb: np.nda
     df = delta_f(f1new,f2new,fb)
     coef=poly_coefficients(df,zb,covb)
     fun   = (free_energyb+coef[0,:] +
-             coef[1,:]-0.5*(coef[2,:] -
+             coef[1,:]-0.5*(coef[2,:] +
              coef[3,:]) - coef[4,:] + 
              omega1*df[0]**3+omega2*df[1]**3)
     return fun[0] - fun[1]
@@ -419,10 +421,11 @@ def f_next_point_zeta(f2new: float,free_energyb: np.ndarray,za: np.ndarray,zb: n
     """
     fun = np.zeros(2)
     dfab = delta_f(fb[0,:],fb[1,:],fa)
-    omega1 = (-covb[0,:] + covb[1,:])/(6*dfab[1])
-    omega2 = (zb[1,:]-za[1,:] + (cova[1,:]+covb[1,:])*dfab[1]
-              )/(2*dfab[0])
+    omega1 = (-covb[1,:] + cova[1,:])/(6*dfab[1])
+    omega2 = (zb[1,:]-za[1,:] + 0.5*(cova[1,:]+covb[1,:])*dfab[1]
+              )/dfab[0]
     omega3 = (zb[0,:]-za[0,:])/(2*dfab[0]) - dfab[1]*omega2/(2*dfab[0])
+
     df = delta_f(f1new,f2new,fb)
     coef=poly_coefficients(df,zb,covb)
     fun   = (free_energyb+coef[0,:] +
@@ -515,12 +518,10 @@ def calculate_next_point(int_type:int ,f1new: float,f: np.ndarray,free_energy: n
         free_energy[bpt,:] = (cal_free_energy(f[:,ipt,:],f[:,bpt,:],
         z[:,ipt,:],z[:,bpt,:],cov[:,ipt,:],cov[:,bpt,:],free_energy[ipt,:]))
         
-
     apt = Npoints - 2
     bpt = Npoints - 1
     f2new0 = first_guess_newton(free_energy[bpt,:],z[:,bpt,:],f1new,f[:,bpt,:])
-
-
+    
     if (int_type==0):
         f2new = optimize.newton(f_next_point_zeta,f2new0,fprime=df_next_point_zeta,
                           args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
@@ -535,6 +536,3 @@ def calculate_next_point(int_type:int ,f1new: float,f: np.ndarray,free_energy: n
 
 
 
-if __name__ == "__main__":
-    # Do something if this file is invoked on its own
-    print('canvas')
