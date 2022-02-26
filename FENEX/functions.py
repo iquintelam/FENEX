@@ -1,4 +1,5 @@
 """Provide functions used to estimate coexistence points"""
+from tkinter.tix import INTEGER
 import numpy as np
 from scipy import optimize
 
@@ -276,6 +277,8 @@ def f_next_point(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: np
     """
     Free energy difference function of the next point to be optimized if the Number of points is greater than 1
 
+    REF : J. Chem. Phys. 146, 134508 (2017)
+
 
     Parameters
     ----------
@@ -297,9 +300,6 @@ def f_next_point(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: np
     
     covb: np.ndarray [3,iphase]
         Covariances [cov(z1,Z1),cov(z2,Z2),cov(z1,Z2)] of current point for both I and II phases
-
-    cova: np.ndarray [3,iphase]
-        Covariances [cov(z1,Z1),cov(z2,Z2),cov(z1,Z2)] of previous point for both I and II phases
     
     f_b : np.ndarray [2,iphase]
         Current integration points f1 and f2
@@ -326,7 +326,7 @@ def f_next_point(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,covb: np
              omega1*df[0]**3+omega2*df[1]**3)
     return fun[1] - fun[2]
 
-def df_next_point(za,zb,covb,f1new,f2new,fa,fb):
+def df_next_point(za: np.ndarray,zb: np.ndarray,covb: np.ndarray,f1new: np.ndarray,f2new: np.ndarray,fa: np.ndarray,fb: np.ndarray) -> float:
     """
     Calculate the partial derivative of Free energy difference function (f_next_point) with respect 
     to the new coexistence point (f2)
@@ -370,11 +370,117 @@ def df_next_point(za,zb,covb,f1new,f2new,fa,fb):
              covb[2,:]*df[1] + 3*omega2*df[1]**2)
     return fun[1] - fun[2]
 
-def calculate_next_point(f1new: float,f: np.ndarray,free_energy: np.ndarray, z: np.ndarray, cov: np.ndarray) :
+def f_next_point_zeta(free_energyb: np.ndarray,za: np.ndarray,zb: np.ndarray,cova: np.ndarray,covb: np.ndarray,f1new: float,f2new: float,fa: np.ndarray,fb: np.ndarray):
+
+    """
+    Free energy difference function of the next point to be optimized if the Number of points is greater than 1
+    Specialized for the case that when f1 can not be linearly uncoupled from the free energy 
+
+    The polynomial form of the free energy is different from that of f_next_point with
+    n = 3 in that an asymmetry in the f 1 and f 2 terms is introduced to forsake the need to evaluate second (or higher) order
+    derivatives of free energy with respect to f 1. 
+    REF : Escobedo, F. J. Chem. Phys. 147, 214501 (2017)
+
+    Parameters
+    ----------
+
+    f1new : float
+        The next integration point f1 in the coexistence line
+    
+    f2new : float
+        The next integration point f2 in the coexistence line
+    
+    free_energyb: np.ndarray [iphase]
+        Free energy of phases I and II in the current point 
+    
+    zb: np.ndarray [2,iphase]
+        Conjugate varibales (z1,z2) of currrent point (f1,f2) for both I and II phases
+    
+    za: np.ndarray [2,iphase]
+        Conjugate varibales (z1,z2) of previous point (f1,f2) for both I and II phases
+    
+    covb: np.ndarray [3,iphase]
+        Covariances [cov(z1,Z1),cov(z2,Z2),cov(z1,Z2)] of current point for both I and II phases
+
+    cova: np.ndarray [3,iphase]
+        Covariances [cov(z1,Z1),cov(z2,Z2),cov(z1,Z2)] of previous point for both I and II phases
+    
+    f_b : np.ndarray [2,iphase]
+        Current integration points f1 and f2
+    
+    f_b : np.ndarray [2,iphase]
+        Previous integration points f1 and f2
+
+     Returns
+    -------
+    fun[1] - fun[2] : float
+        Free energy difference in the next point   
+    """
+    fun = np.zeros(2)
+    dfab = delta_f(fb[0,:],fb[1,:],fa)
+    omega1 = (-covb[0,:] + covb[1,:])/(6*dfab[1])
+    omega2 = (zb[1,:]-za[1,:] + (cova[1,:]+covb[1,:])*dfab[1]
+              )/(2*dfab[0])
+    omega3 = (zb[0,:]-za[0,:])/(2*dfab[0]) - dfab[1]*omega2/(2*dfab[0])
+    df = delta_f(f1new,f2new,fb)
+    coef=poly_coefficients(df,zb,covb)
+    fun   = (free_energyb+coef[0,:] +
+             coef[1,:]-0.5*coef[3,:] + omega3*df[0]**2
+             + omega1*df[1]**3+omega2*df[0]*df[1])
+    return fun[1] - fun[2]
+
+def df_next_point_zeta(za: np.ndarray,zb: np.ndarray,cova: np.ndarray,covb: np.ndarray,f1new: np.ndarray,f2new: np.ndarray,fa: np.ndarray,fb: np.ndarray) -> float:
+    """
+    Calculate the partial derivative of Free energy difference function (f_next_point_zeta) with respect 
+    to the new coexistence point (f2)
+
+
+    Parameters
+    ----------
+
+    f1new : float
+        The next integration point f1 in the coexistence line
+    
+    f2new : float
+        The next integration point f2 in the coexistence line
+    
+    free_energyb: np.ndarray [iphase]
+        Free energy of phases I and II in the current point 
+    
+    zb: np.ndarray [2,iphase]
+        Conjugate varibales (z1,z2) of currrent point (f1,f2) for both I and II phases
+    
+    za: np.ndarray [2,iphase]
+        Conjugate varibales (z1,z2) of previous point (f1,f2) for both I and II phases
+    
+    f_b : np.ndarray [2,iphase]
+        Current integration points f1 and f2
+    
+    f_b : np.ndarray [2,iphase]
+        Previous integration points f1 and f2
+
+     Returns
+    -------
+    fun[1] - fun[2] : float
+        Partial derivative of Free energy difference function  
+    """
+    fun = np.zeros(2)
+    dfab = delta_f(fb[0,:],fb[1,:],fa)
+    omega1 = (-covb[0,:] + covb[1,:])/(6*dfab[1])
+    omega2 = (zb[1,:]-za[1,:] + (cova[1,:]+covb[1,:])*dfab[1]
+              )/(2*dfab[0])
+    df = delta_f(f1new,f2new,fb)
+    fun   = (zb[1,:]-covb[1,:]*df[1] +
+             + 3*omega1*df[1]**2+omega2*df[0])
+    return fun[1] - fun[2]
+
+def calculate_next_point(int_type:int ,f1new: float,f: np.ndarray,free_energy: np.ndarray, z: np.ndarray, cov: np.ndarray) -> 'tuple[np.ndarray,np.ndarray]' :
     """
     Calculate the  next point (f2) in the integration and its free energies in the Nf1f2 ensemble 
     Parameters
     ----------
+    int_type:int
+        Integration type: defines the function used to calculate the next point
     f1new : float
         The next integration point f1 in the coexistence line
     
@@ -411,7 +517,13 @@ def calculate_next_point(f1new: float,f: np.ndarray,free_energy: np.ndarray, z: 
     apt = Npoints - 2
     bpt = Npoints - 1
     f2new0 = first_guess_newton(free_energy[bpt,:],z[:,bpt,:],f1new,f[:,bpt,:])
-    f2new = optimize.newton(f_next_point, f2new0,fprime=df_next_point,
+    if (int_type==0):
+        f2new = optimize.newton(f_next_point_zeta, f2new0,fprime=df_next_point_zeta,
+                          args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
+                          cov[:,apt,:],cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:]),
+                          maxiter=500)
+    else:
+        f2new = optimize.newton(f_next_point, f2new0,fprime=df_next_point,
                           args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
                           cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:]),
                           maxiter=500)
