@@ -1,5 +1,4 @@
 """Provide functions used to estimate coexistence points"""
-
 import numpy as np
 from scipy import optimize
 
