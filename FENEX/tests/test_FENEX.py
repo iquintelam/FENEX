@@ -28,8 +28,8 @@ free_energy,f2new = calculate_next_point(1 ,f1new,f,free_energy, z, cov)
 
 zsat,free_energy_zsat,enesat,f2sat = calc_zsat(Npoints,free_energy,z,cov,f,stats[1,:,:])
 
-np.savetxt('data_array.csv', (np.transpose([f[0,:,0],f[1,:,0],f2sat,free_energy_zsat[:,0],zsat[0,:,0],zsat[0,:,1],zsat[1,:,0],zsat[1,:,1],enesat[:,0],enesat[:,1]])), delimiter=' ', header='f1 f2 f2sat FEsat z1satI z1satII z2satI z2satII enesatI enesatII', comments="")
-with open("data_array.csv", "a") as file:
+np.savetxt(r'data/data_array.csv', (np.transpose([f[0,:,0],f[1,:,0],f2sat,free_energy_zsat[:,0],zsat[0,:,0],zsat[0,:,1],zsat[1,:,0],zsat[1,:,1],enesat[:,0],enesat[:,1]])), delimiter=' ', header='f1 f2 f2sat FEsat z1satI z1satII z2satI z2satII enesatI enesatII', comments="")
+with open(r"data/data_array.csv", "a") as file:
     file.write(format(f1new, '.8f') + " ")
     file.write(format(f2new, '.8f'))
 fig1, ax1 = plt.subplots()
