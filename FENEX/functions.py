@@ -123,7 +123,7 @@ def f_first_point(f2new: float,free_energy:np.ndarray,z:np.ndarray,cov:np.ndarra
     fun   = (free_energy+coef[0,:] +
              coef[1,:]-0.5*(coef[2,:] +
              coef[3,:]) - coef[4,:])
-    return fun[0] - fun[1]
+    return fun[0] - fun[1] #question
 
 def df_first_point(f2new: float,free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f1new: float,f: np.ndarray) -> float:
 
@@ -159,13 +159,14 @@ def df_first_point(f2new: float,free_energy:np.ndarray,z: np.ndarray,cov: np.nda
     dfun = z[1,:] -cov[1,:]*df[1,:] - cov[2,:]*df[0,:]
     return dfun[0] - dfun[1]
 
-def calc_zsat(f2new: float,z: np.ndarray,cov: np.ndarray,f1new: float,f: np.ndarray) -> np.ndarray:
+def calc_zsat(Npoints:int,free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f: np.ndarray,ene:np.ndarray) -> 'tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
     """
     Refines the near coexistence data
 
     Parameters
     ----------
-
+    Npoints: int
+        Number of points
     f1new : float
         The next integration point f1 in the coexistence line
     
@@ -180,17 +181,40 @@ def calc_zsat(f2new: float,z: np.ndarray,cov: np.ndarray,f1new: float,f: np.ndar
     
     f: np.ndarray [2,iphase]
         Current integration points f1 and f2
+    ene: np.ndarray [iphase]
+        Average potential energy for both I and II phases
 
      Returns
     -------
     zsat : np.ndarray
-        Refines conjugate varibales (z1,z2) of currrent point (f1,f2) for both I and II phases
+        Refined conjugate varibales (z1,z2) of currrent point (f1,f2) for both I and II phases
+    f2sat : np.ndarray
+        Refined point (f2) for both I and II phases
+    enesat : np.ndarray
+        Estimation of saturated average potential energy for both I and II phases
     """
-    zsat = np.zeros((2,2))
-    df = delta_f(f1new,f2new,f)
-    zsat[0,:] = z[0,:] -cov[0,:]*df[0,:] - cov[2,:]*df[1,:]
-    zsat[1,:] = z[1,:] -cov[1,:]*df[1,:] - cov[2,:]*df[0,:]
-    return zsat
+    enesat = np.zeros((Npoints,2))
+    zsat = np.zeros((2,Npoints,2))
+    f2sat = np.zeros(Npoints)
+    free_energy_zsat = np.zeros((Npoints,2))
+    for i in range(Npoints):
+        f2new0 = f[1,i,0] 
+        f1sat  = f[0,i,0]
+        f2sat[i] = optimize.newton(f_first_point, f2new0,fprime=df_first_point,
+                              args=(free_energy[i,:],z[:,i,:],cov[:,i,:],f1sat,f[:,i,:]),
+                              maxiter=500)
+        
+        df = delta_f(f1sat,f2sat[i],f[:,i,:])
+        zsat[0,i,:] = z[0,i,:] -cov[0,i,:]*df[0,:] - cov[2,i,:]*df[1,:]
+        zsat[1,i,:] = z[1,i,:] -cov[1,i,:]*df[1,:] - cov[2,i,:]*df[0,:]
+        coef=poly_coefficients(df,zsat[:,i,:],cov[:,i,:])
+        #redundancy 
+        free_energy_zsat[i]   = (free_energy[i,0]+coef[0,:] +
+                 coef[1,:]-0.5*(coef[2,:] +
+                 coef[3,:]) - coef[4,:])
+        
+        enesat[i,:] = ene[i,:] - cov[2,i,:]*df[1,:]
+    return zsat,free_energy_zsat,enesat,f2sat
 
 def cal_free_energy(f_a: np.ndarray,f_b: np.ndarray,z_a: np.ndarray,z_b: np.ndarray,cov_a: np.ndarray,cov_b: np.ndarray,free_energy_a: np.ndarray) -> np.ndarray:
     """
