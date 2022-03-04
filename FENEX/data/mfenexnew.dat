@@ -1,5 +1,17 @@
 3.49E-02        0     Free energies of first point, phases I and II
- 1      Number of points
-data/crystal.dat
-data/iso.dat
-1.10
+ 7      Number of points
+data/crystal1.dat
+data/iso1.dat
+data/crystal2.dat
+data/iso2.dat
+data/crystal3.dat
+data/iso3.dat
+data/crystal4.dat
+data/iso4.dat
+data/crystal5.dat
+data/iso5.dat
+data/crystal6.dat
+data/iso6.dat
+data/crystal7.dat
+data/iso7.dat
+0.7
