@@ -14,6 +14,7 @@ dependencies:
   - pandas
   - scipy
   - matplotlib
+  - sys 
 
   # Pip-only installs
   - pip:
