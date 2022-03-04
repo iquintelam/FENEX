@@ -514,7 +514,7 @@ def calculate_next_point(int_type:int ,f1new: float,f: np.ndarray,free_energy: n
     f: np.ndarray [2,npoints,iphase]
         Integration points f1 and f2
     
-    free_energy: np.ndarray [iphase,npoints]
+    free_energy: np.ndarray [npoints,iphase]
         Free energy of the initial integartion point  [:,0]
         the rest of the array is zeros
     
