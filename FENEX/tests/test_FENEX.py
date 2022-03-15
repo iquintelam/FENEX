@@ -4,6 +4,7 @@ Unit and regression test for the FENEX package.
 
 # Import package, test suite, and other packages as needed
 import sys
+import os
 
 import pytest
 
@@ -23,7 +24,11 @@ def test_FENEX_imported():
 #f,z,cov,stats = read_covdata_MC(r"data/iso.dat")
 
 def test_fenex():
-    data1 = r"data\simulation_data.dat"
+
+    # Change file path
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    data1 = os.path.join(dir_path, "..", "data", "simulation_data.dat")
+    #data1 = r"data\simulation_data.dat"
     Npoints,f1new,f,free_energy, z, cov,stats = read_input_MC(data1)
 
     free_energy,f2new = calculate_next_point(1 ,f1new,f,free_energy, z, cov) 
