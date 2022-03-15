@@ -32,17 +32,23 @@ def read_covdata_MC(filename: str) -> 'tuple[np.ndarray,np.ndarray,np.ndarray,np
         stats[1] : average potential energy
     """
     lines_in_file = open(filename, 'r').readlines()
-    nbins = len(lines_in_file) -4
+
     f = np.zeros(2)
     z = np.zeros(2)
     cov = np.zeros(3)
     stats = np.zeros(2)
-    _,_,f[0],f[1] = open(filename, 'r').readline().split()
+
+    _, _, f[0], f[1] = lines_in_file[0].split()
+
+    important_info = lines_in_file[-5:]
+
     for i in range(2):
-        z[i] , stats[i] = linecache.getline(filename,nbins+i).split()
-    cov[0]  =  linecache.getline(filename,nbins+3)
-    cov[1]  =  linecache.getline(filename,nbins+2)
-    cov[2]  =  linecache.getline(filename,nbins+4)
+        z[i], stats[i] = ( float(x) for x in important_info[i].split() )
+
+    cov[0] = float(important_info[3])
+    cov[1] = float(important_info[2])
+    cov[2] = float(important_info[4])
+
     return f,z,cov,stats
 
 def read_input_MC(filename: str) -> 'tuple[int,float,np.ndarray,np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
@@ -92,6 +98,8 @@ def read_input_MC(filename: str) -> 'tuple[int,float,np.ndarray,np.ndarray,np.nd
         for i in range(Npoints):
             for j in range(2):
                 filephase=file.readline().split()
+                # Recommend finding another way to find filepath - still depends on script
+                # being executed in a particular place
                 f[:,i,j],z[:,i,j],cov[:,i,j],stats[:,i,j] = read_covdata_MC(filephase[0])
         f1new=float(file.readline().split()[0])
         
