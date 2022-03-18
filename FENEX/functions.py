@@ -290,9 +290,9 @@ def calculate_first_point(f1new: float,f: np.ndarray,free_energy: np.ndarray, z:
         Refined current point(f2)
     """
 
-    f2new0 = first_guess_newton(free_energy,z,f1new,f)
+    f2new0 = first_guess_newton(free_energy[0,:],z[:,0,:],f1new,f[:,0,:])
     f2new = optimize.newton(f_first_point, f2new0,fprime=df_first_point,
-                          args=(free_energy,z,cov,f1new,f),
+                          args=(free_energy[0,:],z[:,0,:],cov[:,0,:],f1new,f[:,0,:]),
                           maxiter=500)
     return f2new
 
