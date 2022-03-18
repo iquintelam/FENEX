@@ -13,7 +13,7 @@ dependencies:
   - numpy
   - pandas
   - scipy
-  - matplotlib 
+  - matplotlib
 
   # Pip-only installs
   - pip:
