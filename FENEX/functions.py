@@ -159,14 +159,12 @@ def df_first_point(f2new: float,free_energy:np.ndarray,z: np.ndarray,cov: np.nda
     dfun = z[1,:] -cov[1,:]*df[1,:] - cov[2,:]*df[0,:]
     return dfun[0] - dfun[1]
 
-def calc_zsat(Npoints:int,free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f: np.ndarray,ene:np.ndarray) -> 'tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
+def refine_coex(free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f: np.ndarray,ene:np.ndarray) -> 'tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
     """
     Refines the near coexistence data
 
     Parameters
     ----------
-    Npoints: int
-        Number of points
     f1new : float
         The next integration point f1 in the coexistence line
     
@@ -193,6 +191,7 @@ def calc_zsat(Npoints:int,free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f
     enesat : np.ndarray
         Estimation of saturated average potential energy for both I and II phases
     """
+    Npoints = np.shape(f)[1]
     enesat = np.zeros((Npoints,2))
     zsat = np.zeros((2,Npoints,2))
     f2sat = np.zeros(Npoints)
@@ -501,7 +500,7 @@ def df_next_point_zeta(f2new: float,free_energyb: np.ndarray,za: np.ndarray,zb: 
              + 3*omega1*df[1]**2+omega2*df[0])
     return fun[0] - fun[1]
 
-def calculate_next_point(int_type:int ,f1new: float,f: np.ndarray,free_energy: np.ndarray, z: np.ndarray, cov: np.ndarray) -> 'tuple[np.ndarray,float]' :
+def estimate_coexistence(int_type:int ,f1new: float,f: np.ndarray,free_energy: np.ndarray, z: np.ndarray, cov: np.ndarray) -> 'tuple[np.ndarray,float]' :
     """
     Calculate the  next point (f2) in the integration and its free energies in the Nf1f2 ensemble 
     Parameters
@@ -534,27 +533,33 @@ def calculate_next_point(int_type:int ,f1new: float,f: np.ndarray,free_energy: n
         Free energies for all the points in the intagetion
     """
     
-    Npoints = np.shape(f)[1]
-
-    for ipt in range(Npoints-1):
-        bpt = ipt +1
-        free_energy[bpt,:] = (cal_free_energy(f[:,ipt,:],f[:,bpt,:],
-        z[:,ipt,:],z[:,bpt,:],cov[:,ipt,:],cov[:,bpt,:],free_energy[ipt,:]))
-        
-    apt = Npoints - 2
-    bpt = Npoints - 1
-    f2new0 = first_guess_newton(free_energy[bpt,:],z[:,bpt,:],f1new,f[:,bpt,:])
     
-    if (int_type==0):
-        f2new = optimize.newton(f_next_point_zeta,f2new0,fprime=df_next_point_zeta,
-                          args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
-                          cov[:,apt,:],cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
-                          maxiter=500)
+    Npoints = np.shape(f)[1]
+    
+    if int(Npoints)==1:
+        f2new=calculate_first_point(f1new,f,free_energy, z, cov)
     else:
-        f2new = optimize.newton(f_next_point,f2new0,fprime=df_next_point,
-                          args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
-                          cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
-                          maxiter=500)
+        for ipt in range(Npoints-1):
+            bpt = ipt +1
+            free_energy[bpt,:] = (cal_free_energy(f[:,ipt,:],f[:,bpt,:],
+            z[:,ipt,:],z[:,bpt,:],cov[:,ipt,:],cov[:,bpt,:],free_energy[ipt,:]))
+
+        apt = Npoints - 2
+        bpt = Npoints - 1
+        f2new0 = first_guess_newton(free_energy[bpt,:],z[:,bpt,:],f1new,f[:,bpt,:])
+    
+        if (int_type==1):
+            f2new = optimize.newton(f_next_point_zeta,f2new0,fprime=df_next_point_zeta,
+                              args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
+                              cov[:,apt,:],cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
+                              maxiter=500)
+        elif (int_type==2):
+            f2new = optimize.newton(f_next_point,f2new0,fprime=df_next_point,
+                              args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
+                              cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
+                              maxiter=500)
+        else:
+            return print('Integration types are 1 or 2')
     return free_energy,f2new
 
 

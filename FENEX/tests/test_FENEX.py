@@ -93,9 +93,9 @@ def test_fenex():
     z = np.array([[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]],[[2.23293245,2.47249644],[2.23128398,2.46899051]]])
     cov = np.array([[[0.96084424,0.99139901],[0.89934423,0.93119316]],[[0.04958482,0.06373951],[0.04330027,0.06763215]],[[0.07901728,0.13309644],[0.07107514,0.12661185]]])
     stats = np.array([[[0.37352467,0.224034],[0.366731,0.22013267]],[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]]])
-    free_energy,f2new = calculate_next_point(1 ,f1new,f,free_energy, z, cov) 
+    free_energy,f2new = estimate_coexistence(1 ,f1new,f,free_energy, z, cov) 
     f2check=8.37242894118646
-    zsat,free_energy_zsat,enesat,f2sat = calc_zsat(Npoints,free_energy,z,cov,f,stats[1,:,:])
+    zsat,free_energy_zsat,enesat,f2sat = refine_coex(free_energy,z,cov,f,stats[1,:,:])
     delta =6e-4
     f2sat_check = [8.1685 ,8.27357712677913]
     zsat_check =[[[-.2095241E+01 ,-.1595087E+01], [ -.1967657E+01 ,-.1498863E+01]],

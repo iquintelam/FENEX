@@ -1,12 +1,74 @@
 import sys
 import os
 
+#import FENEX
+import FENEX as FENEX
 
-from FENEX import *
+import numpy as np
+# def estimate_coexistence(int_type:int ,f1new: float,f: np.ndarray,free_energy: np.ndarray, z: np.ndarray, cov: np.ndarray) -> 'tuple[np.ndarray,float]' :
+#     """
+#     Calculate the  next point (f2) in the integration and its free energies in the Nf1f2 ensemble 
+#     Parameters
+#     ----------
+#     int_type:int
+#         Integration type: defines the function used to calculate the next point
+#     f1new : float
+#         The next integration point f1 in the coexistence line
+    
+#     f: np.ndarray [2,npoints,iphase]
+#         Integration points f1 and f2
+    
+#     free_energy: np.ndarray [npoints,iphase]
+#         Free energy of the initial integartion point  [:,0]
+#         the rest of the array is zeros
+    
+#     z: np.ndarray [2,npoints,iphase]
+#         Conjugate varibales (z1,z2) of previous point (f1,f2) for both I and II phases
+    
+#     cov: np.ndarray [3,npoints,iphase]
+#         Covariances [cov(z1,Z1),cov(z2,Z2),cov(z1,Z2)] of previous point for both I and II phases
 
+
+#     Returns
+#     -------
+#     f2new : float
+#         The next property 2 point to carry out a simulation in the Nf1f2 ensemble 
+
+#     free_energy: np.ndarry [Npoints,iphase]
+#         Free energies for all the points in the intagetion
+#     """
+#     print('here')
+    
+#     Npoints = np.shape(f)[1]
+    
+
+#     print(Npoints)
+#     if int(Npoints)==1:
+#         f2new=calculate_first_point(f1new,f,free_energy, z, cov)
+#     else:
+#         for ipt in range(Npoints-1):
+#             bpt = ipt +1
+#             free_energy[bpt,:] = (cal_free_energy(f[:,ipt,:],f[:,bpt,:],
+#             z[:,ipt,:],z[:,bpt,:],cov[:,ipt,:],cov[:,bpt,:],free_energy[ipt,:]))
+
+#         apt = Npoints - 2
+#         bpt = Npoints - 1
+#         f2new0 = first_guess_newton(free_energy[bpt,:],z[:,bpt,:],f1new,f[:,bpt,:])
+    
+#         if (int_type==0):
+#             f2new = optimize.newton(f_next_point_zeta,f2new0,fprime=df_next_point_zeta,
+#                               args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
+#                               cov[:,apt,:],cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
+#                               maxiter=500)
+#         else:
+#             f2new = optimize.newton(f_next_point,f2new0,fprime=df_next_point,
+#                               args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
+#                               cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
+#                               maxiter=500)
+#     return free_energy,f2new
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data1 = os.path.join(dir_path, "..", "data", "simulation_data_one.dat")
-Npoints,f1new,f,free_energy, z, cov,stats = read_input_MC(data1)
+Npoints,f1new,f,free_energy,z,cov,stats = FENEX.read_test_system()
 # print(Npoints)
 # print(f1new)
 # print(f)
@@ -17,14 +79,16 @@ Npoints,f1new,f,free_energy, z, cov,stats = read_input_MC(data1)
 # print(np.shape(f),np.shape(free_energy),np.shape(z),np.shape(cov))
 #print(f[:,0,:])
 
-f2new = calculate_first_point(f1new,f,free_energy, z, cov) 
+#f2new = calculate_first_point(f1new,f,free_energy, z, cov) 
 #print(f2new)
-
-
+print(np.shape(f))
+free_energy,f2new = FENEX.estimate_coexistence(2 ,f1new,f,free_energy, z, cov) 
+print(f2new)
+zsat,free_energy_zsat,enesat,f2sat = FENEX.refine_coex(free_energy,z,cov,f,stats[1,:,:])
 dir_path = os.path.dirname(os.path.realpath(__file__))
 data1 = os.path.join(dir_path, "..", "data", "simulation_data.dat")
 #data1 = r"data\simulation_data.dat"
-Npoints,f1new,f,free_energy, z, cov,stats = read_input_MC(data1)
+Npoints,f1new,f,free_energy, z, cov,stats = FENEX.read_test_system()
 print(Npoints)
 print(f1new)
 print(f)
@@ -33,9 +97,9 @@ print(z)
 print(cov)
 print(stats)
 
-free_energy,f2new = calculate_next_point(1 ,f1new,f,free_energy, z, cov) 
+free_energy,f2new = FENEX.estimate_coexistence(1 ,f1new,f,free_energy, z, cov) 
 print(free_energy,f2new)
-zsat,free_energy_zsat,enesat,f2sat = calc_zsat(Npoints,free_energy,z,cov,f,stats[1,:,:])
+zsat,free_energy_zsat,enesat,f2sat = FENEX.refine_coex(free_energy,z,cov,f,stats[1,:,:])
 print(zsat)
 zsat_check =([[-.2095241E+01 ,-.1595087E+01],
        [ -.1967657E+01 ,-.1498863E+01],
@@ -56,7 +120,7 @@ cov = np.array([[[0.96084424, 0.99139901]],[[0.04958482, 0.06373951]],[[0.079017
 f = np.array([[[1.15     ,  1.15      ]],[[8.02277426, 8.02277426]]])
 df = np.array([[-4.999999999999982E-002,-4.999999999999982E-002],[ 0.114863567636570 , 0.114863567636570]])
 free_energy = np.array([[0.0349, 0.    ]])
-coef=poly_coefficients(df,z[:,0,:],cov[:,0,:])
+coef=FENEX.poly_coefficients(df,z[:,0,:],cov[:,0,:])
 
 coefcheck =np.array([[  0.104186465958507     ,  7.878485855510022E-002  ],
                      [  0.256482587277708     ,  0.283999761787539  ],
@@ -68,11 +132,11 @@ delta = 1e-6
 print(coef-coefcheck)
 
 f1new = 1.10000000000000
-f2new = first_guess_newton(free_energy[0,:],z[:,0,:],f1new,f[:,0,:])
+f2new = FENEX.first_guess_newton(free_energy[0,:],z[:,0,:],f1new,f[:,0,:])
 
-fun = f_first_point(f2new,free_energy[0,:],z[:,0,:],cov[:,0,:],f1new,f[:,0,:])
+fun = FENEX.f_first_point(f2new,free_energy[0,:],z[:,0,:],cov[:,0,:],f1new,f[:,0,:])
 funcheck = -1.940106807892805E-004
-print( df_first_point(f2new,free_energy[0,:],z[:,0,:],cov[:,0,:],f1new,f[:,0,:]))
+# print( df_first_point(f2new,free_energy[0,:],z[:,0,:],cov[:,0,:],f1new,f[:,0,:]))
 # f2new = optimize.newton(f_first_point, f2new0,fprime=df_first_point,
 #                           args=(free_energy[0,:],z[:,0,:],cov[:,0,:],f1new,f[:,0,:]),
 #                           maxiter=500)

@@ -1,6 +1,6 @@
 # import pandas as pd
 import numpy as np
-
+import os
 def read_covdata_MC(filename: str) -> 'tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
     """
     Reads the covariance data from out of a simulation in a spacific format
@@ -50,7 +50,7 @@ def read_covdata_MC(filename: str) -> 'tuple[np.ndarray,np.ndarray,np.ndarray,np
 
     return f,z,cov,stats
 
-def read_input_MC(filename: str) -> 'tuple[int,float,np.ndarray,np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
+def read_test_system() -> 'tuple[int,float,np.ndarray,np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
     """
     Reads input file of FENEX method
     ----------
@@ -83,7 +83,8 @@ def read_input_MC(filename: str) -> 'tuple[int,float,np.ndarray,np.ndarray,np.nd
         stats[1] : average potential energy
     """
 
-
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    filename = os.path.join(dir_path, "data", "simulation_data.dat")
 
     with open(filename, 'r') as file:
         fe = file.readline().split()[:2]
