@@ -1,6 +1,5 @@
 # import pandas as pd
 import numpy as np
-import linecache
 
 def read_covdata_MC(filename: str) -> 'tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
     """
