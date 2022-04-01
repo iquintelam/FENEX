@@ -213,7 +213,13 @@ def refine_coex(free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f: np.ndarr
                  coef[3,:]) - coef[4,:])
         
         enesat[i,:] = ene[i,:] - cov[2,i,:]*df[1,:]
-    return zsat,free_energy_zsat,enesat,f2sat
+        
+        sat_prop = dict()
+        sat_prop["z_sat"] =zsat
+        sat_prop["free_energy_sat"] = free_energy_zsat
+        sat_prop["ene_sat"] = enesat
+        sat_prop["f2_sat"] = f2sat
+    return sat_prop#zsat,free_energy_zsat,enesat,f2sat
 
 def cal_free_energy(f_a: np.ndarray,f_b: np.ndarray,z_a: np.ndarray,z_b: np.ndarray,cov_a: np.ndarray,cov_b: np.ndarray,free_energy_a: np.ndarray) -> np.ndarray:
     """

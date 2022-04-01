@@ -34,10 +34,11 @@ To calculate the next point in the integration and the free energies of the prev
 >>> free_energy,f2new = FENEX.estimate_coexistence(integ_type ,f1new,f,free_energy, z, cov) 
 ```
 The existence pressure correspondent to the next $\epsilon$ `f2new` can be used as an input in a new simulation to continue the integration. The free energy of both phases from the previous coexistence points `f2new` are also calculated.
-To refine the coexistence properties, we call `refine_coex`
+To refine the coexistence properties, we call `refine_coex`. This functions returns a dictionary. The keys for properties are (`z_sat`,`free_energy_sat`,`ene_sat`,`f2_sat`)
 
 ```python
->>> z_ref,free_energy_ref,u_ref,f2_ref = FENEX.refine_coex(free_energy,z,cov,f,stats[1,:,:])
+>>> results_sat = FENEX.refine_coex(free_energy,z,cov,f,stats[1,:,:])
+>>> print(results_sat['free_energy_sat'])
 ```
 ### References
 

@@ -95,14 +95,14 @@ def test_fenex():
     stats = np.array([[[0.37352467,0.224034],[0.366731,0.22013267]],[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]]])
     free_energy,f2new = estimate_coexistence(1 ,f1new,f,free_energy, z, cov) 
     f2check=8.37242894118646
-    zsat,free_energy_zsat,enesat,f2sat = refine_coex(free_energy,z,cov,f,stats[1,:,:])
+    results_sat = refine_coex(free_energy,z,cov,f,stats[1,:,:])
     delta =6e-4
     f2sat_check = [8.1685 ,8.27357712677913]
     zsat_check =[[[-.2095241E+01 ,-.1595087E+01], [ -.1967657E+01 ,-.1498863E+01]],
  [[ 0.2225709E+01 ,0.2463211E+01], [ 0.2225398E+01 ,0.2459797E+01]]]
     # assert function() to check if values are almost equal
     assert_almost_equal(f2new, f2check,decimal=delta)
-    assert_almost_equal(f2sat, f2sat_check,decimal=delta)
-    assert_almost_equal(zsat,zsat_check,decimal=delta)
+    assert_almost_equal(results_sat['f2_sat'], f2sat_check,decimal=delta)
+    assert_almost_equal(results_sat['z_sat'],zsat_check,decimal=delta)
     
     
