@@ -123,7 +123,7 @@ def f_first_point(f2new: float,free_energy:np.ndarray,z:np.ndarray,cov:np.ndarra
     fun   = (free_energy+coef[0,:] +
              coef[1,:]-0.5*(coef[2,:] +
              coef[3,:]) - coef[4,:])
-    return fun[0] - fun[1] #question
+    return fun[0] - fun[1] 
 
 def df_first_point(f2new: float,free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f1new: float,f: np.ndarray) -> float:
 
@@ -208,7 +208,8 @@ def refine_coex(free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f: np.ndarr
         zsat[1,i,:] = z[1,i,:] -cov[1,i,:]*df[1,:] - cov[2,i,:]*df[0,:]
         coef=poly_coefficients(df,zsat[:,i,:],cov[:,i,:])
         #redundancy 
-        free_energy_zsat[i]   = (free_energy[i,0]+coef[0,:] +
+     
+        free_energy_zsat[i,:]   = (free_energy[i,:]+coef[0,:] +
                  coef[1,:]-0.5*(coef[2,:] +
                  coef[3,:]) - coef[4,:])
         
@@ -264,6 +265,7 @@ def cal_free_energy(f_a: np.ndarray,f_b: np.ndarray,z_a: np.ndarray,z_b: np.ndar
     free_energy_b = (free_energy_a+0.5*(coef_a[0,:]+coef_b[0,:]+
     coef_a[1,:]+coef_b[1,:])+(coef_b[2,:]-coef_a[2,:]+coef_b[3,:]-coef_a[3,:])/12
     +(coef_b[4,:]-coef_a[4,:])/6) 
+    
     return free_energy_b
 
 def calculate_first_point(f1new: float,f: np.ndarray,free_energy: np.ndarray, z: np.ndarray, cov: np.ndarray) -> float:
@@ -549,7 +551,7 @@ def estimate_coexistence(int_type:int ,f1new: float,f: np.ndarray,free_energy: n
             bpt = ipt +1
             free_energy[bpt,:] = (cal_free_energy(f[:,ipt,:],f[:,bpt,:],
             z[:,ipt,:],z[:,bpt,:],cov[:,ipt,:],cov[:,bpt,:],free_energy[ipt,:]))
-
+        print(free_energy[bpt,:])
         apt = Npoints - 2
         bpt = Npoints - 1
         f2new0 = first_guess_newton(free_energy[bpt,:],z[:,bpt,:],f1new,f[:,bpt,:])
