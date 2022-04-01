@@ -72,7 +72,7 @@ def test_df_first_point():
     funcheck = -0.238705015716258
     delta = 1e-6
     assert_almost_equal(fun, funcheck,decimal=delta)
-def test_first_point():
+def test_calculate_first_point():
     f1new = 1.1
     free_energy = np.array([[0.0349, 0.    ]])
     f = np.array([[[1.15     ,  1.15      ]],[[8.02277426, 8.02277426]]])
@@ -85,7 +85,7 @@ def test_first_point():
     # assert function() to check if values are almost equal
     assert_almost_equal(f2new, f2check,decimal=delta)
 
-def test_fenex():
+def test_estimate_coexistence():
     Npoints = 2
     f1new = 1.05
     free_energy = np.array([[0.0349, 0.    ],[0.  ,   0.    ]])
