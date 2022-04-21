@@ -38,9 +38,9 @@ The other input is the integration type that can be 'coupled' or 'decoupled':
 >>> free_energy,f2new = FENEX.estimate_coexistence('decoupled' ,int_1) 
 ```
 The coexistence pressure correspondent to the next `f2new` can be used as an input in a new simulation to continue the integration. The free energy of both phases from the previous coexistence points `f2new` are also calculated.
-To refine the coexistence properties, we call `refine_coex`. This function returns a dictionary. The keys for properties are (`z_sat`,`free_energy_sat`,`ene_sat`,`f2_sat`)
+To refine the coexistence properties, we call `refine_coex`. This function returns a dictionary. The keys for properties are (`z_sat`,`free_energy_sat`,`ene_sat`,`f2_sat`).
 ```python
->>> results_sat = FENEX.refine_coex(free_energy,z,cov,f,stats[1,:,:])
+>>> results_sat = FENEX.refine_coex(int_1)
 >>> print(results_sat['free_energy_sat'])
 ```
 ### References
