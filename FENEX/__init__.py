@@ -3,6 +3,7 @@
 # Add imports here
 from .functions import *
 from .process import *
+from .variables import *
 # Handle versioneer
 from ._version import get_versions
 versions = get_versions()

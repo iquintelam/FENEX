@@ -1,4 +1,5 @@
 """Provide functions used to estimate coexistence points"""
+from ctypes import c_char
 import numpy as np
 from scipy import optimize
 
@@ -159,12 +160,13 @@ def df_first_point(f2new: float,free_energy:np.ndarray,z: np.ndarray,cov: np.nda
     dfun = z[1,:] -cov[1,:]*df[1,:] - cov[2,:]*df[0,:]
     return dfun[0] - dfun[1]
 
-def refine_coex(free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f: np.ndarray,ene:np.ndarray) -> 'tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
+def refine_coex(int_1) -> 'tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]':
     """
     Refines the near coexistence data
 
     Parameters
     ----------
+    Attributes of class int_1:
     f1new : float
         The next integration point f1 in the coexistence line
     
@@ -179,7 +181,7 @@ def refine_coex(free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f: np.ndarr
     
     f: np.ndarray [2,iphase]
         Current integration points f1 and f2
-    ene: np.ndarray [iphase]
+    ene: np.ndarray [iphase] stats[1,:,:]
         Average potential energy for both I and II phases
 
      Returns
@@ -191,29 +193,30 @@ def refine_coex(free_energy:np.ndarray,z: np.ndarray,cov: np.ndarray,f: np.ndarr
     enesat : np.ndarray
         Estimation of saturated average potential energy for both I and II phases
     """
-    Npoints = np.shape(f)[1]
+    ene = int_1.stats[1,:,:]
+    Npoints = np.shape(int_1.f)[1]
     enesat = np.zeros((Npoints,2))
     zsat = np.zeros((2,Npoints,2))
     f2sat = np.zeros(Npoints)
     free_energy_zsat = np.zeros((Npoints,2))
     for i in range(Npoints):
-        f2new0 = f[1,i,0] 
-        f1sat  = f[0,i,0]
+        f2new0 = int_1.f[1,i,0] 
+        f1sat  = int_1.f[0,i,0]
         f2sat[i] = optimize.newton(f_first_point, f2new0,fprime=df_first_point,
-                              args=(free_energy[i,:],z[:,i,:],cov[:,i,:],f1sat,f[:,i,:]),
+                              args=(int_1.free_energy[i,:],int_1.z[:,i,:],int_1.cov[:,i,:],f1sat,int_1.f[:,i,:]),
                               maxiter=500)
         
-        df = delta_f(f1sat,f2sat[i],f[:,i,:])
-        zsat[0,i,:] = z[0,i,:] -cov[0,i,:]*df[0,:] - cov[2,i,:]*df[1,:]
-        zsat[1,i,:] = z[1,i,:] -cov[1,i,:]*df[1,:] - cov[2,i,:]*df[0,:]
-        coef=poly_coefficients(df,zsat[:,i,:],cov[:,i,:])
+        df = delta_f(f1sat,f2sat[i],int_1.f[:,i,:])
+        zsat[0,i,:] = int_1.z[0,i,:] -int_1.cov[0,i,:]*df[0,:] - int_1.cov[2,i,:]*df[1,:]
+        zsat[1,i,:] = int_1.z[1,i,:] -int_1.cov[1,i,:]*df[1,:] - int_1.cov[2,i,:]*df[0,:]
+        coef=poly_coefficients(df,zsat[:,i,:],int_1.cov[:,i,:])
         #redundancy 
      
-        free_energy_zsat[i,:]   = (free_energy[i,:]+coef[0,:] +
+        free_energy_zsat[i,:]   = (int_1.free_energy[i,:]+coef[0,:] +
                  coef[1,:]-0.5*(coef[2,:] +
                  coef[3,:]) - coef[4,:])
         
-        enesat[i,:] = ene[i,:] - cov[2,i,:]*df[1,:]
+        enesat[i,:] = ene[i,:] - int_1.cov[2,i,:]*df[1,:]
         
         sat_prop = dict()
         sat_prop["z_sat"] =zsat
@@ -508,13 +511,15 @@ def df_next_point_zeta(f2new: float,free_energyb: np.ndarray,za: np.ndarray,zb: 
              + 3*omega1*df[1]**2+omega2*df[0])
     return fun[0] - fun[1]
 
-def estimate_coexistence(int_type:int ,f1new: float,f: np.ndarray,free_energy: np.ndarray, z: np.ndarray, cov: np.ndarray) -> 'tuple[np.ndarray,float]' :
+def estimate_coexistence(int_type ,int_1) -> 'tuple[np.ndarray,float]' :
     """
     Calculate the  next point (f2) in the integration and its free energies in the Nf1f2 ensemble 
     Parameters
     ----------
-    int_type:int
+    int_type:character
         Integration type: defines the function used to calculate the next point
+        Options are coupled or decoupled
+    Attributes of class int_1:
     f1new : float
         The next integration point f1 in the coexistence line
     
@@ -542,33 +547,32 @@ def estimate_coexistence(int_type:int ,f1new: float,f: np.ndarray,free_energy: n
     """
     
     
-    Npoints = np.shape(f)[1]
+    Npoints = np.shape(int_1.f)[1]
     
     if int(Npoints)==1:
-        f2new=calculate_first_point(f1new,f,free_energy, z, cov)
+        f2new=calculate_first_point(int_1.f1new,int_1.f,int_1.free_energy, int_1.z, int_1.cov)
     else:
         for ipt in range(Npoints-1):
             bpt = ipt +1
-            free_energy[bpt,:] = (cal_free_energy(f[:,ipt,:],f[:,bpt,:],
-            z[:,ipt,:],z[:,bpt,:],cov[:,ipt,:],cov[:,bpt,:],free_energy[ipt,:]))
-        print(free_energy[bpt,:])
+            int_1.free_energy[bpt,:] = (cal_free_energy(int_1.f[:,ipt,:],int_1.f[:,bpt,:],
+            int_1.z[:,ipt,:],int_1.z[:,bpt,:],int_1.cov[:,ipt,:],int_1.cov[:,bpt,:],int_1.free_energy[ipt,:]))
         apt = Npoints - 2
         bpt = Npoints - 1
-        f2new0 = first_guess_newton(free_energy[bpt,:],z[:,bpt,:],f1new,f[:,bpt,:])
+        f2new0 = first_guess_newton(int_1.free_energy[bpt,:],int_1.z[:,bpt,:],int_1.f1new,int_1.f[:,bpt,:])
     
-        if (int_type==1):
+        if (int_type=='coupled'):
             f2new = optimize.newton(f_next_point_zeta,f2new0,fprime=df_next_point_zeta,
-                              args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
-                              cov[:,apt,:],cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
+                              args=(int_1.free_energy[bpt,:],int_1.z[:,apt,:],int_1.z[:,bpt,:],
+                              int_1.cov[:,apt,:],int_1.cov[:,bpt,:],int_1.f1new,int_1.f[:,apt,:],int_1.f[:,bpt,:],),
                               maxiter=500)
-        elif (int_type==2):
+        elif (int_type=='decoupled'):
             f2new = optimize.newton(f_next_point,f2new0,fprime=df_next_point,
-                              args=(free_energy[bpt,:],z[:,apt,:],z[:,bpt,:],
-                              cov[:,bpt,:],f1new,f[:,apt,:],f[:,bpt,:],),
+                              args=(int_1.free_energy[bpt,:],int_1.z[:,apt,:],int_1.z[:,bpt,:],
+                              int_1.cov[:,bpt,:],int_1.f1new,int_1.f[:,apt,:],int_1.f[:,bpt,:],),
                               maxiter=500)
         else:
-            return print('Integration types are 1 or 2')
-    return free_energy,f2new
+            return print('Integration types are coupled or decoupled')
+    return int_1.free_energy,f2new
 
 
 

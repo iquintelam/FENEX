@@ -13,9 +13,6 @@ import pytest
 from FENEX import *
 
 
-
-import matplotlib.pyplot as plt
-
 def test_FENEX_imported():
     """Sample test, will always pass so long as import statement worked."""
     assert "FENEX" in sys.modules
@@ -93,7 +90,8 @@ def test_estimate_coexistence():
     z = np.array([[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]],[[2.23293245,2.47249644],[2.23128398,2.46899051]]])
     cov = np.array([[[0.96084424,0.99139901],[0.89934423,0.93119316]],[[0.04958482,0.06373951],[0.04330027,0.06763215]],[[0.07901728,0.13309644],[0.07107514,0.12661185]]])
     stats = np.array([[[0.37352467,0.224034],[0.366731,0.22013267]],[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]]])
-    free_energy,f2new = estimate_coexistence(1 ,f1new,f,free_energy, z, cov) 
+    int_1 = SimulationData(Npoints,f1new,f,free_energy,z,cov,stats)
+    free_energy,f2new = estimate_coexistence('decoupled' ,int_1) 
     free_energy_check=[[0.0349  ,   0.        ],[0.3923189 , 0.36023006]]
     f2check=8.37242894118646
     delta =6e-4
@@ -103,12 +101,15 @@ def test_estimate_coexistence():
     
     
 def test_refine_coex():
+    Npoints = 2
+    f1new = 1.05
     free_energy=np.array([[0.0349  ,   0.        ],[0.3923189 , 0.36023006]])
     f = np.array([[[1.15,1.15],[1.1,1.1]],[[8.02277426,8.02277426],[8.13763783,8.13763783]]])
     z = np.array([[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]],[[2.23293245,2.47249644],[2.23128398,2.46899051]]])
     cov = np.array([[[0.96084424,0.99139901],[0.89934423,0.93119316]],[[0.04958482,0.06373951],[0.04330027,0.06763215]],[[0.07901728,0.13309644],[0.07107514,0.12661185]]])
     stats = np.array([[[0.37352467,0.224034],[0.366731,0.22013267]],[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]]])
-    results_sat = refine_coex(free_energy,z,cov,f,stats[1,:,:])
+    int_1 = SimulationData(Npoints,f1new,f,free_energy,z,cov,stats)
+    results_sat = refine_coex(int_1)
     delta =6e-4
     f2sat_check = [8.1685 ,8.27357712677913]
     zsat_check =[[[-.2095241E+01 ,-.1595087E+01], [ -.1967657E+01 ,-.1498863E+01]],
