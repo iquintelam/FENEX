@@ -21,21 +21,24 @@ pip install
 Import "FENEX" and use simulation or experimental data to estimate the next coexistence point in the thermodynamic integration and calculate free energies. Coexistence properties can also be refined from the “near coexistence” simulated data. According to the [reference paper](https://doi.org/10.1063/1.5006047), one can choose one of two types of integration.
 
 Suppose we want to integrate on a property that can be linearly decoupled from the Halmitonion (type 2).
-Read data from the test system which corresponds to an integration on the pair potential energy parameter($\epsilon$) to find the coexistence pressure(p) between a crystalline and an isotropic phase.
+Read data from the test system, which corresponds to an integration on the pair potential energy parameter($\epsilon$) to find the coexistence pressure(p) between a crystalline and an isotropic phase.
 
 ```python
 >>> from FENEX import read_test_system
 >>> Npoints,f1new,f,free_energy,z,cov,stats = read_test_system() 
 ```
-We have the number of integration points, the next $\epsilon$ in the coexistence line `f1new`, the previous integration points ($\epsilon$,p) for both phases concatenated in an array of shape (2,Npoints,iphase), the free energy of the first point in the integration is in an array of shape (Npoints,iphase) `free_energy[:,0]`, the ensemble average of conjugate variables `z` (u,v) concatenated in an array of shape (2,Npoints,iphase), covariances (cov(u,U),cov(v,V),cov(u,V)] `cov` of previous points for both phases concatenated in an array of shape (3,npoints,iphase), and simulation statistics (acceptance probability of perturbation, potential energy) `stats` for both phases concatenated in an array of shape (2,npoints,iphase).
+We have the number of integration points, the next $\epsilon$ in the coexistence line `f1new`, the previous integration points ($\epsilon$,p) for both phases concatenated in an array of shape (2,Npoints,iphase). The free energy of the first point in the integration is in an array of shape (Npoints,iphase) `free_energy[:,0]`, the ensemble average of conjugate variables `z` (u,v) concatenated in an array of shape (2,Npoints,iphase), covariances (cov(u,U),cov(v,V),cov(u,V)] `cov` of previous points for both phases concatenated in an array of shape (3,npoints,iphase), and simulation statistics (acceptance probability of perturbation, potential energy) `stats` for both phases concatenated in an array of shape (2,npoints,iphase).
 
-To calculate the next point in the integration and the free energies of the previous point, we call `estimate_coexistence`
+To calculate the next point in the integration and the free energies of the previous point, we call `estimate_coexistence`. This function receives as one of  its input a class `int_1` with all the data from the simulation as attributes:
 ```python
->>> free_energy,f2new = FENEX.estimate_coexistence(integ_type ,f1new,f,free_energy, z, cov) 
+>>> int_1 = FENEX.SimulationData(Npoints,f1new,f,free_energy,z,cov,stats)
 ```
-The existence pressure correspondent to the next $\epsilon$ `f2new` can be used as an input in a new simulation to continue the integration. The free energy of both phases from the previous coexistence points `f2new` are also calculated.
-To refine the coexistence properties, we call `refine_coex`. This functions returns a dictionary. The keys for properties are (`z_sat`,`free_energy_sat`,`ene_sat`,`f2_sat`)
-
+The other input is the integration type that can be 'coupled' or 'decoupled':
+```python
+>>> free_energy,f2new = FENEX.estimate_coexistence('decoupled' ,int_1) 
+```
+The coexistence pressure correspondent to the next `f2new` can be used as an input in a new simulation to continue the integration. The free energy of both phases from the previous coexistence points `f2new` are also calculated.
+To refine the coexistence properties, we call `refine_coex`. This function returns a dictionary. The keys for properties are (`z_sat`,`free_energy_sat`,`ene_sat`,`f2_sat`)
 ```python
 >>> results_sat = FENEX.refine_coex(free_energy,z,cov,f,stats[1,:,:])
 >>> print(results_sat['free_energy_sat'])
