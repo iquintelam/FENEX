@@ -13,6 +13,7 @@ import pytest
 from FENEX import *
 
 
+
 def test_FENEX_imported():
     """Sample test, will always pass so long as import statement worked."""
     assert "FENEX" in sys.modules
@@ -90,14 +91,14 @@ def test_estimate_coexistence():
     z = np.array([[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]],[[2.23293245,2.47249644],[2.23128398,2.46899051]]])
     cov = np.array([[[0.96084424,0.99139901],[0.89934423,0.93119316]],[[0.04958482,0.06373951],[0.04330027,0.06763215]],[[0.07901728,0.13309644],[0.07107514,0.12661185]]])
     stats = np.array([[[0.37352467,0.224034],[0.366731,0.22013267]],[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]]])
-    int_1 = SimulationData(Npoints,f1new,f,free_energy,z,cov,stats)
-    free_energy,f2new = estimate_coexistence('decoupled' ,int_1) 
+    int_1 = Integrate(Npoints,f1new,f,free_energy,z,cov,stats,'decoupled')
+    Integrate.estimate_coexistence(int_1) 
     free_energy_check=[[0.0349  ,   0.        ],[0.3923189 , 0.36023006]]
     f2check=8.37242894118646
     delta =6e-4
     # assert function() to check if values are almost equal
-    assert_almost_equal(f2new, f2check,decimal=delta)
-    assert_almost_equal(free_energy, free_energy_check,decimal=delta)
+    assert_almost_equal(int_1.f2new, f2check,decimal=delta)
+    assert_almost_equal(int_1.free_energy, free_energy_check,decimal=delta)
     
     
 def test_refine_coex():
@@ -108,13 +109,13 @@ def test_refine_coex():
     z = np.array([[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]],[[2.23293245,2.47249644],[2.23128398,2.46899051]]])
     cov = np.array([[[0.96084424,0.99139901],[0.89934423,0.93119316]],[[0.04958482,0.06373951],[0.04330027,0.06763215]],[[0.07901728,0.13309644],[0.07107514,0.12661185]]])
     stats = np.array([[[0.37352467,0.224034],[0.366731,0.22013267]],[[-2.08372932,-1.57569717],[-1.95799492,-1.48165106]]])
-    int_1 = SimulationData(Npoints,f1new,f,free_energy,z,cov,stats)
-    results_sat = refine_coex(int_1)
+    int_1 = Integrate(Npoints,f1new,f,free_energy,z,cov,stats,'decoupled')
+    Integrate.refine_coexistence(int_1)
     delta =6e-4
     f2sat_check = [8.1685 ,8.27357712677913]
     zsat_check =[[[-.2095241E+01 ,-.1595087E+01], [ -.1967657E+01 ,-.1498863E+01]],
     [[ 0.2225709E+01 ,0.2463211E+01], [ 0.2225398E+01 ,0.2459797E+01]]]
     free_energysat_check = [[0.36001651, 0.35971349],[0.69443783, 0.69398819]]
-    assert_almost_equal(results_sat['f2_sat'], f2sat_check,decimal=delta)
-    assert_almost_equal(results_sat['z_sat'],zsat_check,decimal=delta)
-    assert_almost_equal(results_sat['free_energy_sat'],free_energysat_check,decimal=delta)
+    assert_almost_equal(int_1.f2sat, f2sat_check,decimal=delta)
+    assert_almost_equal(int_1.zsat,zsat_check,decimal=delta)
+    assert_almost_equal(int_1.free_energy_sat,free_energysat_check,decimal=delta)

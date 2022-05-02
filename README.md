@@ -29,19 +29,20 @@ Read data from the test system, which corresponds to an integration on the pair 
 ```
 We have the number of integration points, the next $\epsilon$ in the coexistence line `f1new`, the previous integration points ($\epsilon$,p) for both phases concatenated in an array of shape (2,Npoints,iphase). The free energy of the first point in the integration is in an array of shape (Npoints,iphase) `free_energy[:,0]`, the ensemble average of conjugate variables `z` (u,v) concatenated in an array of shape (2,Npoints,iphase), covariances (cov(u,U),cov(v,V),cov(u,V)] `cov` of previous points for both phases concatenated in an array of shape (3,npoints,iphase), and simulation statistics (acceptance probability of perturbation, potential energy) `stats` for both phases concatenated in an array of shape (2,npoints,iphase).
 
-To calculate the next point in the integration and the free energies of the previous point, we call `estimate_coexistence`. This function receives as one of  its input a class `int_1` with all the data from the simulation as attributes:
+To calculate the next point in the integration and the free energies of the previous point, we call `estimate_coexistence` from the class Integration. For that, we need to initialize the class Integration with all the data from the simulation as attributes:
 ```python
->>> int_1 = FENEX.SimulationData(Npoints,f1new,f,free_energy,z,cov,stats)
+>>> int_1 = FENEX.Integration(Npoints,f1new,f,free_energy,z,cov,stats,int_type)
 ```
-The other input is the integration type that can be 'coupled' or 'decoupled':
+The input `int_type` is the integration type that can be 'coupled' or 'decoupled':
 ```python
->>> free_energy,f2new = FENEX.estimate_coexistence('decoupled' ,int_1) 
+>>> FENEX.Integration.estimate_coexistence(int_1) 
+>>> print(int_1.free_energy,int_1.f2new)
 ```
-The coexistence pressure correspondent to the next `f2new` can be used as an input in a new simulation to continue the integration. The free energy of both phases from the previous coexistence points `f2new` are also calculated.
-To refine the coexistence properties, we call `refine_coex`. This function returns a dictionary. The keys for properties are (`z_sat`,`free_energy_sat`,`ene_sat`,`f2_sat`).
+The coexistence pressure correspondent to the next `f2new` can be used as an input in a new simulation to continue the integration. The free energy of both phases from the previous coexistence points `free_energy` are also calculated.
+To refine the coexistence properties, we call `refine_coex`. This function calculates the refined properties: `zsat`,`free_energy_sat`,`enesat`,`f2sat`).
 ```python
->>> results_sat = FENEX.refine_coex(int_1)
->>> print(results_sat['free_energy_sat'])
+>>> results_sat = FENEX.Integrate.refine_coexistence(int_1)
+>>> print(int_1.free_energy_sat)
 ```
 ### References
 
