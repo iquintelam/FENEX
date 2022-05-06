@@ -31,11 +31,11 @@ We have the number of integration points, the next $\epsilon$ in the coexistence
 
 To calculate the next point in the integration and the free energies of the previous point, we call `estimate_coexistence` from the class Integration. For that, we need to initialize the class Integration with all the data from the simulation as attributes:
 ```python
->>> int_1 = FENEX.Integration(Npoints,f1new,f,free_energy,z,cov,stats,int_type)
+>>> int_1 = FENEX.Integrate(Npoints,f1new,f,free_energy,z,cov,stats,int_type)
 ```
 The input `int_type` is the integration type that can be 'coupled' or 'decoupled':
 ```python
->>> FENEX.Integration.estimate_coexistence(int_1) 
+>>> FENEX.Integrate.estimate_coexistence(int_1) 
 >>> print(int_1.free_energy,int_1.f2new)
 ```
 The coexistence pressure correspondent to the next `f2new` can be used as an input in a new simulation to continue the integration. The free energy of both phases from the previous coexistence points `free_energy` are also calculated.
