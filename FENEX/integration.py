@@ -3,7 +3,7 @@ from queue import Empty
 import numpy as np
 from FENEX import cal_free_energy,calculate_first_point,first_guess_newton,f_next_point_zeta,df_next_point_zeta,f_next_point,df_next_point
 from FENEX import f_first_point,df_first_point,delta_f,poly_coefficients
-
+import sys
 from scipy import optimize
 class Integrate:
     def __init__(self, Npoints, f1new, f, free_energy, z,cov,stats,int_type):
@@ -76,7 +76,8 @@ class Integrate:
                                 self.cov[:,bpt,:],self.f1new,self.f[:,apt,:],self.f[:,bpt,:],),
                                 maxiter=500)
           else:
-              return print('Integration types are coupled or decoupled')
+              print('Integration types are coupled or decoupled')
+              sys.exit(1)
       
     def refine_coexistence(self):
       """
