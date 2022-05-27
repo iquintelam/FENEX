@@ -6,10 +6,11 @@ from FENEX import f_first_point,df_first_point,delta_f,poly_coefficients
 import sys
 from scipy import optimize
 class Integrate:
-    def __init__(self, Npoints, f1new, f, free_energy, z,cov,stats,int_type):
+    def __init__(self,f1new=None, f=None, free_energy=None, z=None,cov=None,stats=None,int_type=None):
+
+
       self.free_energy = free_energy
       self.z = z
-      self.Npoints = Npoints
       self.f1new = f1new
       self.f = f
       self.cov = cov
@@ -76,9 +77,7 @@ class Integrate:
                                 self.cov[:,bpt,:],self.f1new,self.f[:,apt,:],self.f[:,bpt,:],),
                                 maxiter=500)
           else:
-              print('Integration types are coupled or decoupled')
-              sys.exit(1)
-      
+              raise ValueError(F"Integration types are coupled or decoupled!")
     def refine_coexistence(self):
       """
       Refines the near coexistence data
