@@ -6,13 +6,11 @@ from FENEX import f_first_point,df_first_point,delta_f,poly_coefficients
 import sys
 from scipy import optimize
 class Integrate:
-    def __init__(self,f1new=None, f=None, free_energy=None, z=None,cov=None,stats=None,int_type=None):
-
-
-      self.free_energy = free_energy
-      self.z = z
+    def __init__(self,f1new, f, free_energy, z,cov,int_type,stats=None):
       self.f1new = f1new
       self.f = f
+      self.free_energy = free_energy
+      self.z = z
       self.cov = cov
       self.stats =stats
       self.int_type = int_type
@@ -113,9 +111,8 @@ class Integrate:
       free_energy_sat : np.ndarray
           Refined Free energies for all the points in the intagetion
       """
-      ene = self.stats[1,:,:]
+
       Npoints = np.shape(self.f)[1]
-      self.enesat = np.zeros((Npoints,2))
       self.zsat = np.zeros((2,Npoints,2))
       self.f2sat = np.zeros(Npoints)
       self.free_energy_sat = np.zeros((Npoints,2))
@@ -135,5 +132,7 @@ class Integrate:
           self.free_energy_sat[i,:]   = (self.free_energy[i,:]+coef[0,:] +
                    coef[1,:]-0.5*(coef[2,:] +
                    coef[3,:]) - coef[4,:])
-
-          self.enesat[i,:] = ene[i,:] - self.cov[2,i,:]*df[1,:]
+          if (self.stats is not None):
+            ene = self.stats[1, :, :]
+            self.enesat = np.zeros((Npoints, 2))
+            self.enesat[i,:] = ene[i,:] - self.cov[2,i,:]*df[1,:]

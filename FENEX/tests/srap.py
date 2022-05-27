@@ -8,7 +8,7 @@ import FENEX as FENEX
 
 integ_type =1
 Npoints,f1new,f,free_energy,z,cov,stats = FENEX.read_test_system() 
-int_1 = FENEX.Integrate(f1new,f,free_energy,z,cov,stats,'decoupled')
+int_1 = FENEX.Integrate(f1new,f,free_energy,z,cov,'decoupled')
 FENEX.Integrate.estimate_coexistence(int_1)
 print(int_1.free_energy,int_1.f2new)
 results_sat = FENEX.Integrate.refine_coexistence(int_1)

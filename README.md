@@ -27,11 +27,11 @@ Read data from the test system, which corresponds to an integration on the pair 
 >>> from FENEX import read_test_system
 >>> Npoints,f1new,f,free_energy,z,cov,stats = read_test_system() 
 ```
-We have the number of integration points, the next $\epsilon$ in the coexistence line `f1new`, the previous integration points ($\epsilon$,p) for both phases concatenated in an array of shape (2,Npoints,iphase). The free energy of the first point in the integration is in an array of shape (Npoints,iphase) `free_energy[:,0]`, the ensemble average of conjugate variables `z` (u,v) concatenated in an array of shape (2,Npoints,iphase), covariances (cov(u,U),cov(v,V),cov(u,V)] `cov` of previous points for both phases concatenated in an array of shape (3,npoints,iphase), and simulation statistics (acceptance probability of perturbation, potential energy) `stats` for both phases concatenated in an array of shape (2,npoints,iphase). 
+We have the number of integration points, the next $\epsilon$ in the coexistence line `f1new`, the previous integration points ($\epsilon$,p) for both phases concatenated in an array of shape (2,Npoints,iphase). The free energy of the first point in the integration is in an array of shape (Npoints,iphase) `free_energy[:,0]`, the ensemble average of conjugate variables `z` (u,v) concatenated in an array of shape (2,Npoints,iphase), covariances (cov(u,U),cov(v,V),cov(u,V)] `cov` of previous points for both phases concatenated in an array of shape (3,npoints,iphase). Simulation statistics (acceptance probability of perturbation, potential energy) `stats` for both phases concatenated in an array of shape (2,npoints,iphase). This array is a non-default argument that can be passed to refine the coexistence values. 
 We also need to define the integration type that can be 'coupled' or 'decoupled'.
 To calculate the next point in the integration and the free energies of the previous point, we call `estimate_coexistence` from the class Integration. For that, we need to initialize the class Integration with all the data from the simulation as attributes:
 ```python
->>> int_1 = FENEX.Integrate(f1new,f,free_energy,z,cov,stats,'coupled')
+>>> int_1 = FENEX.Integrate(f1new,f,free_energy,z,cov,'coupled',stats)
 >>> FENEX.Integrate.estimate_coexistence(int_1) 
 >>> print(int_1.free_energy,int_1.f2new)
 ```
